@@ -1,0 +1,23 @@
+{
+  "name": "rxjs-projekat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"build": "webpack --config webpack.config.js",
+	"watch": "webpack --watch --config webpack.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "rxjs": "^7.8.1",
+    "ts-loader": "^9.4.3",
+    "typescript": "^5.1.5",
+    "webpack": "^5.88.0",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "devDependencies": {
+    "webpack-cli": "^5.1.4"
+  }
+}
