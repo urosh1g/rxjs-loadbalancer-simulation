@@ -4,13 +4,14 @@ import { IncomingRequest } from "./IncomingRequest";
 import { MAX_CPU_LOAD, MAX_MEM_LOAD } from "./LoadRequirement";
 
 class LoadBalancer implements Observer<IncomingRequest> {
-    servers: Array<Server>;
-    requestEmitter: Subject<IncomingRequest>;
-    sub: Subscription;
+    private servers: Array<Server>;
+    private requestEmitter: Subject<IncomingRequest>;
+    private sub: Subscription;
+    private nextId: number = 1;
 
     constructor() {
         this.servers = new Array<Server>(
-            new Server(1)
+            new Server(this.nextId++, this)
         );
         this.servers[this.servers.length - 1].draw(document.body);
         this.requestEmitter = new Subject();
@@ -34,6 +35,16 @@ class LoadBalancer implements Observer<IncomingRequest> {
         });
     }
 
+    remove(server: Server) {
+        let domElem = document.getElementById(`${server.id}`);
+        if (domElem) domElem.remove();
+        let serverToRemove = this.servers.find(srv => srv.id == server.id);
+        if(serverToRemove) {
+            let idx = this.servers.indexOf(serverToRemove);
+            this.servers.splice(idx, 1);
+        }
+    }
+
     next(value: IncomingRequest) {
         this.requestEmitter.next(value);
     }
@@ -51,7 +62,7 @@ class LoadBalancer implements Observer<IncomingRequest> {
     }
 
     private addNewServer(): Server {
-        let server = new Server(this.servers.length + 1);
+        let server = new Server(this.nextId++, this);
         this.servers.push(server);
         server.draw(document.body);
         return server;
