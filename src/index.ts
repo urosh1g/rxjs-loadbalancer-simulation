@@ -40,7 +40,7 @@ const stream$ = new Observable<IncomingRequest>(sub => {
                 cpuLoad: generateRandom(cpuLoad, 100),
                 memoryLoad: generateRandom(memLoad, 100),
             };
-            sub.next(new IncomingRequest("name", requestLoad));
+            sub.next(new IncomingRequest(Date.now().toString(), requestLoad));
             push();
         }, 1000);
     })();
