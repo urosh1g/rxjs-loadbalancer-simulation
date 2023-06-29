@@ -16,7 +16,7 @@ class LoadBalancer implements Observer<IncomingRequest> {
         this.servers[this.servers.length - 1].draw(document.body);
         this.requestEmitter = new Subject();
         this.sub = this.requestEmitter.subscribe(request => {
-            let server: Server;
+            let server: Server; // server that's responsible for handling the request
 
             from(this.servers).pipe(
                 filter((server) => {
@@ -28,6 +28,10 @@ class LoadBalancer implements Observer<IncomingRequest> {
                 })
             ).subscribe(srv => server = srv);
 
+            /*
+                If no servers are able to handle the request,
+                create a new instance and forward the request to it
+            */
             if (!server) {
                 server = this.addNewServer();
             }
@@ -35,26 +39,34 @@ class LoadBalancer implements Observer<IncomingRequest> {
         });
     }
 
+    /*
+        Incoming Request, emit to a server
+    */
+    next(value: IncomingRequest) {
+        this.requestEmitter.next(value);
+    }
+    error: (err: any) => void;
+    complete() {
+        this.sub.unsubscribe();
+    }
+
+    /*
+        Remove provided server instance from the DOM
+        and from the server list
+    */
     remove(server: Server) {
         let domElem = document.getElementById(`${server.id}`);
         if (domElem) domElem.remove();
         let serverToRemove = this.servers.find(srv => srv.id == server.id);
-        if(serverToRemove) {
+        if (serverToRemove) {
             let idx = this.servers.indexOf(serverToRemove);
             this.servers.splice(idx, 1);
         }
     }
 
-    next(value: IncomingRequest) {
-        this.requestEmitter.next(value);
-    }
-
-    error: (err: any) => void;
-
-    complete() {
-        this.sub.unsubscribe();
-    }
-
+    /*
+        Return a server with minimal load
+    */
     private minServer(first: Server, second: Server): Server {
         return first.load.cpuLoad < second.load.cpuLoad &&
             first.load.memoryLoad < second.load.memoryLoad ?

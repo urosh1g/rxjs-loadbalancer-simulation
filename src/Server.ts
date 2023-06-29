@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observer, Subject, asapScheduler, map, reduce, take, takeUntil, throwError, timeout, timer } from "rxjs";
+import { Observer, Subject, asapScheduler, throwError, timeout } from "rxjs";
 import { IncomingRequest } from "./IncomingRequest";
 import { LoadRequirement } from "./LoadRequirement";
 import { LoadBalancer } from "./LoadBalancer";
@@ -13,7 +13,7 @@ class Server implements Observer<IncomingRequest> {
     id: number;
     load: ServerLoad;
     private display: HTMLComponent;
-    private loadBalancer: LoadBalancer;
+    private loadBalancer: LoadBalancer; // necessary for reporting inactivity
     private state$: Subject<ServerLoad>;
 
     constructor(id: number, loadBalancer: LoadBalancer) {
@@ -39,6 +39,11 @@ class Server implements Observer<IncomingRequest> {
     error: (err: any) => void;
     complete: () => void;
 
+    /*
+        If server state hasn't been changed for 10sec
+        (no incoming requests to handle)
+        this server should not be active anymore
+    */
     private startStateManagement() {
         this.state$.pipe(
             timeout({
@@ -46,8 +51,7 @@ class Server implements Observer<IncomingRequest> {
                 with: () => throwError(() => new Error(`Server ${this.id} inactive for 10 seconds`))
             })
         ).subscribe({
-            error: (err: Error) => {
-                console.error(err.message);
+            error: (_: Error) => {
                 this.loadBalancer.remove(this);
             }
         });
@@ -83,6 +87,10 @@ class Server implements Observer<IncomingRequest> {
         console.log(`Server ${this.id} handling request ${serializedRequest}`);
         this.handleLoad(request.loadRequirements);
         this.state$.next(this.load);
+        /*
+            Simulate request handling as an asynchronous operation
+            with random time between 0-5 sec
+        */
         asapScheduler.schedule(() => {
             console.log(`Server ${this.id} finished handling request ${serializedRequest}`);
             this.releaseLoad(request.loadRequirements);
