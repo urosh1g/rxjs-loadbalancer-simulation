@@ -1,4 +1,4 @@
-import { Observer } from "rxjs";
+import { Observer, asapScheduler } from "rxjs";
 import { IncomingRequest } from "./IncomingRequest";
 import { LoadRequirement } from "./LoadRequirement";
 
@@ -43,10 +43,11 @@ class Server implements Observer<IncomingRequest> {
     }
 
     private handleRequest(request: IncomingRequest) {
-        console.log(`Server ${this.id} handling request ${request.name}`);
+        let serializedRequest = JSON.stringify(request);
+        console.log(`Server ${this.id} handling request ${serializedRequest}`);
         this.handleLoad(request.loadRequirements);
-        setTimeout(() => {
-            console.log(`Server ${this.id} finished handling request ${request.name}`);
+        asapScheduler.schedule(() => {
+            console.log(`Server ${this.id} finished handling request ${serializedRequest}`);
             this.releaseLoad(request.loadRequirements);
         }, Math.random() * 5000);
     }
