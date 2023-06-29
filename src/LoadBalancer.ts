@@ -12,7 +12,7 @@ class LoadBalancer implements Observer<IncomingRequest> {
         this.servers = new Array<Server>(
             new Server(1)
         );
-        document.body.appendChild(this.servers[this.servers.length - 1].draw());
+        this.servers[this.servers.length - 1].draw(document.body);
         this.requestEmitter = new Subject();
         this.sub = this.requestEmitter.subscribe(request => {
             let server: Server;
@@ -53,7 +53,7 @@ class LoadBalancer implements Observer<IncomingRequest> {
     private addNewServer(): Server {
         let server = new Server(this.servers.length + 1);
         this.servers.push(server);
-        document.body.appendChild(server.draw());
+        server.draw(document.body);
         return server;
     }
 }
