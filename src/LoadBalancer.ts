@@ -1,4 +1,4 @@
-import { Observer, Subject, Subscription } from "rxjs";
+import { Observer, Subject, Subscription, asapScheduler, concatMap, filter, from, reduce } from "rxjs";
 import { Server } from "./Server";
 import { IncomingRequest } from "./IncomingRequest";
 import { MAX_CPU_LOAD, MAX_MEM_LOAD } from "./LoadRequirement";
@@ -15,29 +15,33 @@ class LoadBalancer implements Observer<IncomingRequest> {
         document.body.appendChild(this.servers[this.servers.length - 1].draw());
         this.requestEmitter = new Subject();
         this.sub = this.requestEmitter.subscribe(request => {
-            let canHandle = this.servers.filter(server =>
-                server.load.cpuLoad + request.loadRequirements.cpuLoad < MAX_CPU_LOAD &&
-                server.load.memoryLoad + request.loadRequirements.memoryLoad < MAX_MEM_LOAD
-            );
-            if (canHandle.length == 0) {
-                console.error("Request can't be handled by existing servers");
-                console.error("Creating a new server");
-                this.servers.push(new Server(this.servers.length + 1));
-                document.body.appendChild(this.servers[this.servers.length - 1].draw());
-                console.error("Handling by new server");
-                this.servers[this.servers.length - 1].next(request);
+            let server: Server;
+
+            from(this.servers).pipe(
+                filter((server) => {
+                    return server.load.cpuLoad + request.loadRequirements.cpuLoad < MAX_CPU_LOAD &&
+                        server.load.memoryLoad + request.loadRequirements.memoryLoad < MAX_MEM_LOAD;
+                }),
+                reduce((acc, current) => {
+                    return this.minServer(acc, current);
+                })
+            ).subscribe(srv => server = srv);
+
+            if (!server) {
+                server = this.addNewServer();
             }
-            else {
-                let server = canHandle.reduce((prev, curr) => {
-                    return this.minServer(prev, curr);
-                });
-                server.next(request);
-            }
+            asapScheduler.schedule(() => server.next(request));
         });
     }
 
     next(value: IncomingRequest) {
         this.requestEmitter.next(value);
+    }
+
+    error: (err: any) => void;
+
+    complete() {
+        this.sub.unsubscribe();
     }
 
     private minServer(first: Server, second: Server): Server {
@@ -46,10 +50,11 @@ class LoadBalancer implements Observer<IncomingRequest> {
             first : second;
     }
 
-    error: (err: any) => void;
-
-    complete() {
-        this.sub.unsubscribe();
+    private addNewServer(): Server {
+        let server = new Server(this.servers.length + 1);
+        this.servers.push(server);
+        document.body.appendChild(server.draw());
+        return server;
     }
 }
 
