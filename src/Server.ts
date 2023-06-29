@@ -1,6 +1,7 @@
-import { Observer, asapScheduler } from "rxjs";
+import { BehaviorSubject, Observer, Subject, asapScheduler, map, reduce, take, takeUntil, throwError, timeout, timer } from "rxjs";
 import { IncomingRequest } from "./IncomingRequest";
 import { LoadRequirement } from "./LoadRequirement";
+import { LoadBalancer } from "./LoadBalancer";
 
 type ServerLoad = LoadRequirement;
 type HTMLComponent = {
@@ -12,14 +13,19 @@ class Server implements Observer<IncomingRequest> {
     id: number;
     load: ServerLoad;
     private display: HTMLComponent;
+    private loadBalancer: LoadBalancer;
+    private state$: Subject<ServerLoad>;
 
-    constructor(id: number) {
+    constructor(id: number, loadBalancer: LoadBalancer) {
         this.id = id;
+        this.loadBalancer = loadBalancer;
         this.load = {
             cpuLoad: 0,
             memoryLoad: 0
         };
         this.initializeDisplay();
+        this.state$ = new Subject<ServerLoad>();
+        this.startStateManagement();
     }
 
     draw(parent: HTMLElement) {
@@ -32,6 +38,20 @@ class Server implements Observer<IncomingRequest> {
 
     error: (err: any) => void;
     complete: () => void;
+
+    private startStateManagement() {
+        this.state$.pipe(
+            timeout({
+                each: 10_000,
+                with: () => throwError(() => new Error(`Server ${this.id} inactive for 10 seconds`))
+            })
+        ).subscribe({
+            error: (err: Error) => {
+                console.error(err.message);
+                this.loadBalancer.remove(this);
+            }
+        });
+    }
 
     private initializeDisplay() {
         this.display = {
@@ -62,6 +82,7 @@ class Server implements Observer<IncomingRequest> {
         let serializedRequest = JSON.stringify(request);
         console.log(`Server ${this.id} handling request ${serializedRequest}`);
         this.handleLoad(request.loadRequirements);
+        this.state$.next(this.load);
         asapScheduler.schedule(() => {
             console.log(`Server ${this.id} finished handling request ${serializedRequest}`);
             this.releaseLoad(request.loadRequirements);
@@ -70,7 +91,7 @@ class Server implements Observer<IncomingRequest> {
 
     private setColor() {
         const loadLevel = Math.max(this.load.cpuLoad, this.load.memoryLoad);
-        if(loadLevel < 33) {
+        if (loadLevel < 33) {
             this.display.displayElement.className = "green-server";
         }
         else if (loadLevel < 66) {
