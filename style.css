@@ -8,6 +8,17 @@
     margin-bottom: 10px;
 }
 
+.bar-outline {
+    width: 100%;
+    height:100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: end;
+    border: 1px solid black;
+}
+
 .bar {
     width: 50%;
     height: 100%;
