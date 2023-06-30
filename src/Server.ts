@@ -3,6 +3,7 @@ import { IncomingRequest } from "./IncomingRequest";
 import { LoadRequirement } from "./LoadRequirement";
 import { LoadBalancer } from "./LoadBalancer";
 import { ServerPreviewComponent } from "./components/ServerPreviewComponent";
+import { generateRandom } from "./utils";
 
 type ServerLoad = LoadRequirement;
 
@@ -90,12 +91,12 @@ class Server implements Observer<IncomingRequest> {
         this.handleLoad(request.loadRequirements);
         /*
             Simulate request handling as an asynchronous operation
-            with random time between 0-5 sec
+            with random time between 1-5 sec
         */
         asapScheduler.schedule(() => {
             console.log(`Server ${this.id} finished handling request ${serializedRequest}`);
             this.releaseLoad(request.loadRequirements);
-        }, Math.random() * 5000);
+        }, generateRandom(1000, 5000));
     }
 }
 
