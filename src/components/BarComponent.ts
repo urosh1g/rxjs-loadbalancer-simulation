@@ -21,9 +21,11 @@ class BarComponent {
         if (!this.configured) {
             this.barContent.classList.add("bar");
             this.barContainer.classList.add("bar-container");
+            this.barOutline.classList.add("bar-outline");
             this.textElement.innerText = this.barName;
+            this.barOutline.appendChild(this.barContent);
             this.barContainer.appendChild(this.textElement);
-            this.barContainer.appendChild(this.barContent);
+            this.barContainer.appendChild(this.barOutline);
             this.container.appendChild(this.barContainer);
         }
         parent.appendChild(this.container);
