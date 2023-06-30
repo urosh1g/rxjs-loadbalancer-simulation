@@ -14,8 +14,10 @@ let cpuLoad: number = 0;
 let memLoad: number = 0;
 let container = createView();
 document.body.appendChild(container);
+let parent = container.querySelector("div");
+console.log(parent);
 let [cpuLoadInput, memLoadInput] = Array.from(container.querySelectorAll("input"));
-let loadBalancer: LoadBalancer = new LoadBalancer();
+let loadBalancer: LoadBalancer = new LoadBalancer(parent);
 
 
 const cpuLoad$ = fromEvent(cpuLoadInput, "change").pipe(
@@ -43,7 +45,7 @@ const request$ = new Observable<IncomingRequest>(sub => {
             };
             sub.next(new IncomingRequest(Date.now().toString(), requestLoad));
             push();
-        }, 1000);
+        }, 2000);
     })();
 
     return () => clearTimeout(timeout);
