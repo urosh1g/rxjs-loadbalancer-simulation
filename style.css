@@ -1,11 +1,41 @@
-.green-server {
-    color: green;
+.flex-column-container {
+    display: flex;
+    flex-direction: column;
+    height: 200px;
+    width: 25%;
+    text-align: center;
+    border: 1px solid black;
+    margin-bottom: 10px;
 }
 
-.orange-server {
-    color: orange;
+.bar {
+    width: 50%;
+    height: 100%;
+    transform: rotate(180deg) scale(1, -1);
 }
 
-.red-server {
-    color:red;
+.bar-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.server-bars {
+    display: flex;
+    justify-content: space-around;
+    height: 100%;
+}
+
+.fadeOut {
+    animation: fadeOut 1s;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1;}
+    100% { opacity: 0;}
 }
