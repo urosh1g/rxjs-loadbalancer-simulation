@@ -8,12 +8,19 @@ class LoadBalancer implements Observer<IncomingRequest> {
     private requestEmitter: Subject<IncomingRequest>;
     private sub: Subscription;
     private nextId: number = 1;
+    private parent: HTMLElement;
 
-    constructor() {
+    constructor(parent?: HTMLElement) {
+        if(parent) {
+            this.parent = parent;
+        }
+        else {
+            parent = document.body;
+        }
         this.servers = new Array<Server>(
             new Server(this.nextId++, this)
         );
-        this.servers[this.servers.length - 1].draw(document.body);
+        this.servers[this.servers.length - 1].draw(parent);
         this.requestEmitter = new Subject();
         this.sub = this.requestEmitter.subscribe(request => {
             let server: Server; // server that's responsible for handling the request
@@ -56,7 +63,10 @@ class LoadBalancer implements Observer<IncomingRequest> {
     */
     remove(server: Server) {
         let domElem = document.getElementById(`${server.id}`);
-        if (domElem) domElem.remove();
+        if (domElem) {
+            domElem.classList.add("fadeOut");
+            setTimeout(() => {domElem.remove(); }, 1000);
+        }
         let serverToRemove = this.servers.find(srv => srv.id == server.id);
         if (serverToRemove) {
             let idx = this.servers.indexOf(serverToRemove);
@@ -76,7 +86,7 @@ class LoadBalancer implements Observer<IncomingRequest> {
     private addNewServer(): Server {
         let server = new Server(this.nextId++, this);
         this.servers.push(server);
-        server.draw(document.body);
+        server.draw(this.parent);
         return server;
     }
 }
