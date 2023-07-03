@@ -1,23 +1,12 @@
-import { Observer, Subject, asapScheduler, throwError, timeout } from "rxjs";
+import { Observer, Subject, asyncScheduler, throwError, timeout } from "rxjs";
 import { IncomingRequest } from "./IncomingRequest";
 import { LoadRequirement } from "./LoadRequirement";
 import { LoadBalancer } from "./LoadBalancer";
 import { ServerPreviewComponent } from "./components/ServerPreviewComponent";
-import { generateRandom } from "./utils";
+import { generateRandom, setBackground } from "./utils";
 
 type ServerLoad = LoadRequirement;
 
-function setBackground(div: HTMLDivElement, load: number) {
-    if(load < 33) {
-        div.style.backgroundColor = "green";
-    }
-    else if ( load < 66) {
-        div.style.backgroundColor = "orange";
-    }
-    else {
-        div.style.backgroundColor = "red";
-    }
-}
 
 class Server implements Observer<IncomingRequest> {
     id: number;
@@ -93,7 +82,7 @@ class Server implements Observer<IncomingRequest> {
             Simulate request handling as an asynchronous operation
             with random time between 1-5 sec
         */
-        asapScheduler.schedule(() => {
+        asyncScheduler.schedule(() => {
             console.log(`Server ${this.id} finished handling request ${serializedRequest}`);
             this.releaseLoad(request.loadRequirements);
         }, generateRandom(1000, 5000));
