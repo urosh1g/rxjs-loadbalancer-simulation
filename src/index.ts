@@ -55,7 +55,7 @@ const request$ = new Observable<IncomingRequest>(sub => {
 
 document.body.appendChild(container);
 
-simulation$.subscribe((ev: Event) => {
+simulation$.subscribe((_: Event) => {
     if(subscription) {
         subscription.unsubscribe();
     }
