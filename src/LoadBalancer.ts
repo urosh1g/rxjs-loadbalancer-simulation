@@ -7,17 +7,16 @@ import {
   Subscription,
   asapScheduler,
   catchError,
-  delay,
   filter,
   map,
   merge,
   switchMap,
   throwError,
   withLatestFrom,
-} from 'rxjs';
-import { Server } from './Server';
-import { IncomingRequest } from './IncomingRequest';
-import { LoadRequirement, MAX_CPU_LOAD, MAX_MEM_LOAD } from './LoadRequirement';
+} from "rxjs";
+import { Server } from "./Server";
+import { IncomingRequest } from "./IncomingRequest";
+import { LoadRequirement, MAX_CPU_LOAD, MAX_MEM_LOAD } from "./LoadRequirement";
 
 type ServerState = LoadRequirement;
 
@@ -91,15 +90,17 @@ class LoadBalancer implements Observer<IncomingRequest> {
         and from the server list
     */
   remove(server: Server) {
-    if (server.id == this.bestServer$.value.id) {
-      const nextBest = this.servers
-        .filter((x) => x.id != server.id)
-        .reduce((acc, curr) => this.minLoad(acc, curr));
-      this.bestServer$.next(nextBest);
+    const best = this.bestServer$.value;
+    if (!best || best.id === server.id) {
+      this.bestServer$.next(
+        this.servers
+          .filter((s) => s.id !== server.id)
+          .reduce((acc, curr) => this.minLoad(acc, curr))
+      );
     }
     let domElem = document.getElementById(`${server.id}`);
     if (domElem) {
-      domElem.classList.add('fadeOut');
+      domElem.classList.add("fadeOut");
       setTimeout(() => {
         domElem.remove();
       }, 1000);

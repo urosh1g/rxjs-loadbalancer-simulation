@@ -1,9 +1,9 @@
-import { Observer, Subject, asyncScheduler, throwError, timeout } from 'rxjs';
-import { IncomingRequest } from './IncomingRequest';
-import { LoadRequirement } from './LoadRequirement';
-import { LoadBalancer } from './LoadBalancer';
-import { ServerPreviewComponent } from './components/ServerPreviewComponent';
-import { generateRandom, setBackground } from './utils';
+import { Observer, Subject, asyncScheduler, throwError, timeout } from "rxjs";
+import { IncomingRequest } from "./IncomingRequest";
+import { LoadRequirement } from "./LoadRequirement";
+import { LoadBalancer } from "./LoadBalancer";
+import { ServerPreviewComponent } from "./components/ServerPreviewComponent";
+import { generateRandom, setBackground } from "./utils";
 
 type ServerLoad = LoadRequirement;
 
